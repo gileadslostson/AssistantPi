@@ -78,8 +78,8 @@ triggers:
     phrase: "alexa"
     phrase_assistant: "google"
     threshold: 1e-10 # unused, change in ./keyphrase.list
-    language: "en-us"
-    dictionary: "cmudict-en-us.dict"
+    language: "de-de"
+    dictionary: "cmusphinx-voxforge-de.dic"
 
 # Commands to run before and after an interaction begins. Leave empty to disable.
 event_commands:
