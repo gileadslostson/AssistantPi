@@ -44,6 +44,15 @@ You will need:
 - Trigger Assistant and Alexa with the hotwords *Google* and *Alexa*
 
 
+## Updating
+
+Bringing your AssistantPi up-to-date is just one command away:
+```
+sudo /opt/AlexaPi/src/scripts/update.sh
+```
+This updates both AssistantPi and the [tweaked Assistant SDK](https://github.com/xtools-at/assistant-sdk-python) without having you to go through the installation process again.
+
+
 ## Audio problems
 
 Make sure you've been to `sudo raspi-config`, *Advanced Options > Audio* and have set the desired audio output (i.e. 3.5mm Jack, not HDMI).
@@ -59,16 +68,11 @@ Please refer to the following guides if you encounter any audio problems:
 
 To change the hotwords (currently Alexa and Google), change both these files before running the setup:
 
-```
-.../src/config.template.yaml 
-```
-    
-(*phrase* and *phrase_assistant*) and
-    
-```
-.../src/keyphrase.list
-```
+`.../src/config.template.yaml` (*phrase* and *phrase_assistant*) and `.../src/keyphrase.list`
+
 In the latter, you can also tweak the sensitivity of the hotword recognition. See [here for more information on this topic](http://cmusphinx.sourceforge.net/wiki/faq#qhow_to_implement_hot_word_listening).
+
+Also make sure that your new hotwords are included in the language model. Check the following directory for a file with `.dict` or `.dic` extension and add your hotwords if not already there: `/usr/local/lib/python2.7/dist-packages/pocketsphinx/model/`
 
 
 ## Change Hotword language
@@ -107,8 +111,15 @@ sudo git clone https://github.com/xtools-at/AssistantPi.git AlexaPi
 ```
 sudo git checkout feature/german
 ```
+- Install pocketsphinx. This is the responsible module for the hotword recognition.
+```
+pip install pocketsphinx
+```
 - Install the language package, running as root (or copy the files in .../src/german manually as described above):
 ```
 sudo bash /opt/AlexaPi/src/german/install.sh
 ```
-- Proceed with Setup as above in the Installation instructions (i.e. run the AssistantPi installer script)
+- Proceed with steps above in the Installation instructions (i.e. run the AssistantPi installer script)
+```
+sudo /opt/AlexaPi/src/scripts/setup.sh
+```
