@@ -651,8 +651,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     ###
-    global process
-    cmd = "sudo -u pi sh -c '/opt/AlexaPi/env/bin/python -m -u googlesamples.assistant'"
+    cmd = "sudo -u pi sh -c '/opt/AlexaPi/env/bin/python -m googlesamples.assistant'"
     process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
     #cmd = ["sudo", "-u", "pi", "sh", "-c", "'/opt/AlexaPi/env/bin/python -m -u googlesamples.assistant'"]
     #process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
