@@ -64,6 +64,8 @@ cmdopts, cmdargs = parser.parse_args()
 silent = cmdopts.silent
 debug = cmdopts.debug
 
+process = None
+
 config_exists = alexapi.config.filename is not None
 
 if config_exists:
@@ -344,19 +346,42 @@ def assistant_handler(voice_command):
     if voice_command == voice_command_assistant:
 
         logger.debug("Assistant triggered, starting...")
-        
-        # Start Assistant
-        subprocess.Popen("sox -q /opt/AlexaPi/src/resources/okgoogle_s.mp3 -t alsa default vol -6 dB pad 0 0".split())
-        cmd = "sudo -u pi sh -c '/opt/AlexaPi/env/bin/python -m googlesamples.assistant'"
-        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 
-        # Get signals
-        out = process.stdout.readline()
-        out = b''.join(out).decode("utf-8")
-        if 'exit' in out:
-            logger.debug("assistant_handler: conversation complete, moving on")
-            process.kill()
+        global process
+        if process is not None:
+            process.stdin.write("start_assistant_conversation\n")
+            process.stdin.flush()
+            
+            sound_played = False
 
+            while True:
+                out = process.stdout.readline()
+                out = b''.join(out).decode("utf-8")
+                if 'exit' in out:
+                    logger.debug("assistant_handler: conversation complete, moving on")
+                    break
+                elif 'recording' in out and not sound_played:
+                    subprocess.Popen("sox -q /opt/AlexaPi/src/resources/okgoogle.mp3 -t alsa default vol -6 dB pad 0 0".split())
+                    sound_played = True
+                else:
+                    time.sleep(0.1)
+            
+            # # Start Assistant
+            # subprocess.Popen("sox -q /opt/AlexaPi/src/resources/okgoogle_s.mp3 -t alsa default vol -6 dB pad 0 0".split())
+            # cmd = "sudo -u pi sh -c '/opt/AlexaPi/env/bin/python -m -u googlesamples.assistant'"
+            # process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+
+            # # Get signals
+            # while True:
+            #     out = process.stdout.readline()
+            #     out = b''.join(out).decode("utf-8")
+            #     if 'exit' in out:
+            #         logger.debug("assistant_handler: conversation complete, moving on")
+            #         process.kill()
+            #         break
+            #     time.sleep(0.25)
+        else:
+            logger.debug("assistant_handler: ERROR process is None")
         return True
     else:
         return False
@@ -624,6 +649,14 @@ if __name__ == "__main__":
     except (ConfigurationException, RuntimeError):
         platform.indicate_failure()
         sys.exit(1)
+
+    ###
+    global process
+    cmd = "sudo -u pi sh -c '/opt/AlexaPi/env/bin/python -m -u googlesamples.assistant'"
+    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+    #cmd = ["sudo", "-u", "pi", "sh", "-c", "'/opt/AlexaPi/env/bin/python -m -u googlesamples.assistant'"]
+    #process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+    ###
 
     platform_trigger_callback = triggers.triggers['platform'].platform_callback if 'platform' in triggers.triggers else None
     platform.after_setup(platform_trigger_callback)

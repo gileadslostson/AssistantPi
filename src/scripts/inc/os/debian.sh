@@ -23,11 +23,6 @@ function install_assistant {
 	python3 -m venv /opt/AlexaPi/env
 	/opt/AlexaPi/env/bin/pip install pip setuptools --upgrade
 
-	#set +o nounset
-	#source /home/pi/env/bin/activate
-	#set -o nounset
-	#python -m pip install google-assistant-sdk[samples]
-
 	# Install forked Assistant SDK
 	cd /opt/AlexaPi/src
 	sudo rm -rf assistant-sdk-python
