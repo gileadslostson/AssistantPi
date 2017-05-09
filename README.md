@@ -15,7 +15,7 @@ Credits / Further Resources:
 
 You will need:
 
-1. A Raspberry Pi and an SD Card with a fresh install of Raspbian
+1. A Raspberry Pi and an SD Card with a fresh install of [Raspbian Jessie Lite](https://www.raspberrypi.org/downloads/raspbian/)
 2. Audio peripherals:
     - external speaker with 3.5mm Jack
     - USB microphone
@@ -32,7 +32,7 @@ You will need:
     cd /opt
 	sudo git clone https://github.com/xtools-at/AssistantPi.git AlexaPi
     ```
-- Run the setup and go through all the steps. This will take a while, approx. 25min with a somewhat good Internet connection.
+- Run the setup and go through all the steps. This will take a while, approx. 30min with a somewhat good Internet connection.
 	```
     sudo /opt/AlexaPi/src/scripts/setup.sh
     ```
@@ -42,6 +42,40 @@ You will need:
     ```
 - If you haven't opted for starting AssistantPi at boot, or the Installer threw an error during setup, start the script manually using `python /opt/AlexaPi/src/main.py`. Otherwise, it will be started automatically when the setup finishes.
 - Trigger Assistant and Alexa with the hotwords *Google* and *Alexa*
+
+### Setup problems
+For some users, the setup fails with this error:
+
+```
+Could not import runpy module
+Traceback (most recent call last):
+File "", line 2237, in _find_and_load
+File "", line 2222, in _find_and_load_unlocked
+File "", line 2164, in _find_spec
+File "", line 1940, in find_spec
+File "", line 1911, in _get_spec
+File "", line 1879, in _path_importer_cache
+FileNotFoundError: [Errno 2] No such file or directory
+```
+
+This means there have been troubles setting up the Python virtual environment Google Assistant needs during installation. I haven't figured out yet what's causing this, but if you are encountering this issue, please do the following in the meantime:
+
+- In the setup, don't install Google Assistant, but finish everything AlexaPi-related properly. The setup shouldn't have crashed now and AlexaPi should be running.
+- Run `python3 -m venv /opt/AlexaPi/env` and check if there is a folder `env` in _/opt/AlexaPi_
+- Run the steps of the Google Assistant setup manually:
+```
+sudo /opt/AlexaPi/env/bin/pip install pip setuptools --upgrade
+cd /opt/AlexaPi/src
+sudo rm -rf assistant-sdk-python
+sudo git clone https://github.com/xtools-at/assistant-sdk-python.git
+cd /opt/AlexaPi/src/assistant-sdk-python
+sudo /opt/AlexaPi/env/bin/python -m pip install --upgrade -e ".[samples]"
+cp /opt/AlexaPi/src/assistant.example.asoundrc /home/pi/.asoundrc
+```
+- Do the Authentication with Google API manually:
+```
+sudo /opt/AlexaPi/env/bin/python -m googlesamples.assistant.auth_helpers --client-secrets /home/pi/Downloads/client_secret.json
+```
 
 
 ## Updating
@@ -53,15 +87,20 @@ sudo /opt/AlexaPi/src/scripts/update.sh
 This updates both AssistantPi and the [tweaked Assistant SDK](https://github.com/xtools-at/assistant-sdk-python) without having you to go through the installation process again.
 
 
-## Audio problems
+## Audio Settings
 
 Make sure you've been to `sudo raspi-config`, *Advanced Options > Audio* and have set the desired audio output (i.e. 3.5mm Jack, not HDMI).
 
-Please refer to the following guides if you encounter any audio problems:
+The base audio config is done for you in the setup for both AlexaPi and Assistant. However, if encountering any audio issues in playback or recording, make sure to check by here:
+- [Configure Google Assistant Audio Output](https://developers.google.com/assistant/sdk/prototype/getting-started-pi-python/configure-audio)
+- [AlexaPi Audio Setup and Debugging](https://github.com/alexa-pi/AlexaPi/wiki/Audio-setup-&-debugging)
+- [AlexaPi Wiki](https://github.com/alexa-pi/AlexaPi/wiki/)
 
-[Configure Google Assistant Audio Output](https://developers.google.com/assistant/sdk/prototype/getting-started-pi-python/configure-audio)
+If Google Assistant audio output is choppy or truncated, check the following. Make sure to run `source /opt/AlexaPi/env/bin/activate` before running the samples there, to target AssistantPi's Python environment.
+- [Google Assistant Audio Troubleshooting](https://developers.google.com/assistant/sdk/prototype/getting-started-pi-python/troubleshooting#audio-issues)
 
-[AlexaPi Audio Setup and Debugging](https://github.com/alexa-pi/AlexaPi/wiki/Audio-setup-&-debugging)
+You can set the values for the Block- and Flush size in the AssistantPi config, either before Installation in `/opt/AlexaPi/src/config.template.yaml` or afterwards in `/etc/opt/AlexaPi/config.yaml`. Go find the attribute `sound > assistant` and use your values for `block_size` and `flush_size`.
+
 
 
 ## Change Hotwords
@@ -109,6 +148,7 @@ sudo git clone https://github.com/xtools-at/AssistantPi.git AlexaPi
 ```
 - Change the branch to include the German language package and get the edited `config.yaml`:
 ```
+cd /opt/AlexaPi
 sudo git checkout feature/german
 ```
 - Install pocketsphinx. This is the responsible module for the hotword recognition.

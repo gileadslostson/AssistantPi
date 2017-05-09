@@ -339,14 +339,32 @@ def assistant_handler(voice_command):
     
     # compare to phrase_assistant from config
     voice_command_assistant = config['triggers']['pocketsphinx']['phrase_assistant']
-    logger.debug("Compare to Assistant Command from Config: **" + voice_command_assistant + "**")
+    #logger.debug("Compare to Assistant Command from Config: **" + voice_command_assistant + "**")
     
     if voice_command == voice_command_assistant:
 
-        logger.debug("Assistant triggered, starting...")
-        
+        # Check for Audio settings
+        block_size = ""
+        flush_size = ""
+        try:
+            block_size = config['sound']['assistant']['block_size']
+            flush_size = config['sound']['assistant']['flush_size']
+            if block_size is not None and block_size is not "":
+                block_size = " --audio-block-size=" + str(block_size)
+            else:
+                block_size = ""
+            if flush_size is not None and flush_size is not "":
+                flush_size = " --audio-flush-size=" + str(flush_size)
+            else:
+                flush_size = ""
+        except:
+            logger.debug("Old configuration file without Assistant audio settings detected. To be able to adjust Google Adio settings, run setup again and create a new configuration.")
+            logger.debug("see also https://developers.google.com/assistant/sdk/prototype/getting-started-pi-python/troubleshooting")
         # Start Assistant
-        cmd = "sudo -u pi sh -c '/opt/AlexaPi/env/bin/python -m googlesamples.assistant'"
+        cmd = "/opt/AlexaPi/env/bin/python -m googlesamples.assistant"
+        cmd = cmd + block_size + flush_size
+        logger.debug("Assistant triggered, starting tweaked SDK with command " + cmd)
+        cmd = "sudo -u pi sh -c '" + cmd + "'"
         process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 
         # Get signals
